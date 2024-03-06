@@ -249,6 +249,16 @@ CH-4 / Creating a back link
 
 * Update the urls.py file within the moviereviews folder
 ```python
+# moviereviews/urls.py
 
+from django.contrib import admin
+from django.urls import path
+from movies import views as moviesViews
 
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path("", moviesViews.home, name="home"),
+    path("about/", moviesViews.about, name="about"),
+    path("signup/", moviesViews.signup, name="signup"), 
+]
 ```
