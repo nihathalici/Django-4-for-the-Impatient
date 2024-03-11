@@ -54,3 +54,36 @@ MEDIA_URL = '/media/'
 ```
 
 * Update the urls.py file within the moviereviews.py file
+```python
+# moviereviews/urls.py
+
+from django.contrib import admin
+from django.urls import path
+from movies import views as moviesViews
+from django.conf.urls.static import static
+from django.conf import settings
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path("", moviesViews.home, name="home"),
+    path("about/", moviesViews.about, name="about"),
+    path("signup/", moviesViews.signup, name="signup"), 
+]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+```
+
+* Register the model
+```python
+# movies/admin.py
+
+from django.contrib import admin
+from .models import Movie
+
+admin.site.register(Movie)
+
+```
+
+* Check http://127.0.0.1:8000/admin/
+
+* Make new entries for movies 
