@@ -144,3 +144,209 @@ Sign Up
 </body>
 </html>
 ```
+
+* Update the home function in the views.py
+```python
+def home(request):
+    searchTerm = request.GET.get("searchMovie")
+    if searchTerm:
+        movies = Movie.objects.filter(title__icontains=searchTerm)
+    else:
+        movies = Movie.objects.all()
+    return render(request, "home.html", {"searchTerm": searchTerm, 'movies': movies})
+```
+
+CH-6 / Adding a news app
+========================================================
+
+* Add the new app to the project
+```shell
+python manage.py startapp news
+```
+
+* Update the settings
+```python
+# moviereviews/settings.py
+
+...
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    # Local
+    "movies",
+    "news",
+]
+
+...
+
+```
+
+* Update the urls.py file within the moviereviews folder
+
+```python
+# moviereviews/urls.py
+
+from django.contrib import admin
+from django.urls import path, include
+from movies import views as moviesViews
+from django.conf.urls.static import static
+from django.conf import settings
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path("", moviesViews.home, name="home"),
+    path("about/", moviesViews.about, name="about"),
+    path("signup/", moviesViews.signup, name="signup"),
+    path("news/", include("news.urls")), 
+]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+```
+
+* Within the news folder create urls.py
+```python
+# news/urls.py
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("", views.news, name="news"),
+]
+```
+
+* Update the views.py file within the news folder
+```python
+# news/views.py
+
+from django.shortcuts import render
+
+def news(request):
+    return render(request, "news.html")
+```
+
+CH-6 / News model
+========================================================
+
+* Update the models.py file within the news folder
+```python
+# news/models.py
+
+from django.db import models
+
+class News(models.Model):
+    headline = models.CharField(max_length=200)
+    body = models.TextField()
+    date = models.DateField()
+```
+
+* Update the database
+```shell
+python manage.py makemigrations news
+python manage.py migrate
+```
+
+* Register the new model
+
+```python
+# news/admin.py
+
+from django.contrib import admin
+
+from .models import News
+
+admin.site.register(News)
+```
+
+* Check http://127.0.0.1:8000/admin/news/news/  Add some news
+
+
+CH-6 / Listing news
+========================================================
+
+* Update the views.py file within the news folder
+
+```python
+# news/views.py
+
+from django.shortcuts import render
+from .models import News
+
+def news(request):
+    newss = News.objects.all()
+    return render(request, "news.html", {"newss": newss})
+```
+
+
+* Within the news folder create the templates folder
+* Within the templates folder create the news.html
+```html
+<!-- news/templates/news.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Movies App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container">
+        
+        {% for news in newss %}
+        <h2>{{ news.headline }}</h2>
+        <h5>{{ news.date }}</h5>
+        <p>{{ news.body }}</p>    
+        {% endfor %}        
+    </div>
+  </body>    
+</html>
+```
+
+* Update the views.py file within the news folder
+```python
+# news/views.py
+
+from django.shortcuts import render
+from .models import News
+
+def news(request):
+    newss = News.objects.all().order_by('-date')
+    return render(request, "news.html", {"newss": newss})
+``` 
+
+* Update the news.html and add the bootstrap/card look
+```html
+<!-- news/templates/news.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Movies App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container">
+        
+        {% for news in newss %}
+          <div class="card mb-3">
+            <div class="row g-0">
+                <div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ news.headline }}</h5>
+                        <p class="card-text">{{ news.body }}</p>
+                        <p class="card-text"><small class="text-muted">{{ news.date }}</small></p>
+                    </div>
+                </div>
+            </div>
+          </div>
+        {% endfor %}       
+    </div>
+  </body>    
+</html>
+```
+
+* Check http://127.0.0.1:8000/news/
